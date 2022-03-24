@@ -85,4 +85,4 @@ valid_or_dead('file_save', 'filepath');
 // file_save_image
 valid_or_dead('first', 'regex', '/^[01]$/i');
 // REMOTE_ADDR
-valid_or_dead('REMOTE_ADDR', 'regex', '/^[0-9.:]+$/i');
+valid_or_dead('REMOTE_ADDR', 'regex', '/^[0-9a-fA-F.:]+$/i');

@@ -276,6 +276,36 @@ if ($do_source){
 				this.value = $("#contrast_slider").val();
 			}
 		});
+
+	   //rotation menu option
+	   $("#rotation_slider").noUiSlider({
+			   range: [<?php echo "0,360" ?>]
+			   ,start: <?php echo $rotation . "\r\n" ?>
+			   ,step: 1
+			   ,handles: 1
+			   ,slide: function(){
+					   var values = $(this).val();
+					   if (values == 360) {
+							   $("#rotationauto").css("display", "inline-block");
+							   $("#rotationunit").css("display", "none");
+							   $("#rotation").css("display", "none");
+					   } else {
+							   $("#rotation").css("display", "inline-block");
+							   $("#rotationunit").css("display", "inline-block");
+							   $("#rotationauto").css("display", "none");                                      
+					   }
+					   $("#rotation").val(values);
+			   }
+	   });
+	   $("#rotation").change(function() {
+			   var rotationValue = parseInt(this.value);
+			   if(isNaN(rotationValue)) {
+					   this.value = $("#rotation_slider").val();
+			   } else {
+					   $("#rotation_slider").val(rotationValue);
+					   this.value = $("#rotation_slider").val();
+			   }
+	   });
 ////////////////////////////////////////////////////////
 
 

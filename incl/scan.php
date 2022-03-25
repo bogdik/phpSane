@@ -114,11 +114,16 @@ $cmd_device = '';
 $file_save = '';
 $file_save_image = 0;
 $cmd_scan=$SCANIMAGE." -d ".$scanner.$cmd_geometry_l.$cmd_geometry_t.$cmd_geometry_x.$cmd_geometry_y.$cmd_mode.$cmd_resolution.$cmd_brightness.$cmd_contrast.$cmd_source.$cmd_usr_opt;
+$has_convert = 0;
 
 if ($error_input == 0){
 	if ($action_preview) {
 		$preview_images = $temp_dir."preview_".$sid.".jpg";
 		$cmd_device = $SCANIMAGE." -d ".$scanner." --resolution ".$PREVIEW_DPI."dpi -l 0mm -t 0mm -x ".$MAX_SCAN_WIDTH_MM."mm -y ".$MAX_SCAN_HEIGHT_MM."mm".$cmd_mode.$cmd_brightness.$cmd_contrast.$cmd_source.$cmd_usr_opt." | ".$PNMTOJPEG." --quality=50 > ".$preview_images;
+ 	    if (strlen($cmd_rotation) > 0) {
+			$cmd_device = $cmd_device." && {$CONVERT} '$preview_images' " . $cmd_rotation . " '$preview_images'";
+		}
+
 	} else if ($action_save) {
 		$file_save = $save_dir.$_POST['file_name'].".".$format;
 		if (file_exists($file_save)) {
@@ -150,7 +155,8 @@ if ($error_input == 0){
 			convert: unable to read image data `-' @ error/pnm.c/ReadPNMImage/766.
 			convert: no images defined `pdf:-' @ error/convert.c/ConvertImageCommand/3044.
 			*/
-			$cmd_device = $cmd_scan." && {$CONVERT} '{$temp_dir}out_{$scan_id}_*.tif' -compress jpeg -quality 90 -density {$resolution} pdf:- > '$file_save'";
+            $has_convert=1;
+            $cmd_device = $cmd_scan." && {$CONVERT} '{$temp_dir}out_{$scan_id}_*.tif' -compress jpeg -quality 90 -density {$resolution} " . $cmd_rotation . "'$file_save'";
 		}elseif ($format == "pdf"){
 			//$cmd_device = $cmd_scan." | {$CONVERT} pnm:- -compress jpeg -quality 100 -density {$resolution} pdf:- > \"".$file_save."\"";
 			/*
@@ -158,13 +164,21 @@ if ($error_input == 0){
 			convert: unable to read image data `-' @ error/pnm.c/ReadPNMImage/766.
 			convert: no images defined `pdf:-' @ error/convert.c/ConvertImageCommand/3044.
 			*/
-			$cmd_device = $cmd_scan." | {$CONVERT} - -compress jpeg -quality 100 -density {$resolution} pdf:- > '$file_save'";
+		    if (strlen($cmd_rotation) > 0) {
+				$has_convert=1;
+				$cmd_device = $cmd_scan." && {$CONVERT} '{$temp_dir}out_{$scan_id}_*.tif' " . $cmd_rotation . "-compress jpeg -quality 90 -density {$resolution} pdf:- > '$file_save'";
+		    } else {
+				$cmd_device = $cmd_scan." && {$CONVERT} '{$temp_dir}out_{$scan_id}_*.tif' -compress jpeg -quality 90 -density {$resolution} pdf:- > '$file_save'";
+		    }
 		}
 		if ( ($format == "txt") && ($source =="ADF")){
 			$cmd_device = $cmd_scan." && {$CONVERT} '{$temp_dir}out*.pnm' '{$temp_dir}out_single.pnm' | ".$GOCR." '{$temp_dir}out_single.pnm' > '$file_save'";
 		}elseif ($format == "txt") {
 			$cmd_device = $cmd_scan." | ".$GOCR." - > '$file_save'";
 		}
+	    if (strlen($cmd_rotation) > 0 && $has_convert == 0) {
+			$cmd_device = $cmd_device." && {$CONVERT} '$file_save' " . $cmd_rotation . "'$file-save'";
+	    }
 	}
 }
 

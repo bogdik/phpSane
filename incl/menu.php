@@ -117,7 +117,18 @@ if ($do_contrast) {
 	</tr>";
 }
 
-
+if ($do_rotation) {
+       echo "
+       <tr>
+               <td>".$lang[$lang_id][64]."</td>
+               <td class='value_column'>
+                       <div id='rotation_slider' class='noUiSlider'></div>
+                       <input id='rotation' type='text' value='".$rotation."' name='rotation' maxlength='3'>
+                       <div id='rotationauto' class='' style='display:none'>Auto</div>
+               </td>
+               <td id='rotationunit' class='unit_column'>&#176;</td>
+       </tr>";
+}
 
 if ($do_source) {
 	echo "

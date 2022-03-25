@@ -259,22 +259,20 @@ $scanner_ok = false;
 if ($do_test_mode) {
 	$sane_result = "device `plustek:libusb:004:002' is a Plustek OpticPro U24 flatbed scanner";
 } else {
-	$sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --list-devices | grep 'device' | grep -e '\(scanner\|hpaio\|multi-function\)'";
-	$sane_result = exec($sane_cmd);
-	$sane_result;
-	unset($sane_cmd);
+   $sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --formatted-device-list=%d::%m %i --list-devices";
+   $sane_result = exec($sane_cmd);
+   file_put_contents("./scanners.cache", $sane_result);
+   unset($sane_cmd);
 }
 
 // get scanner name
-$start = strpos($sane_result, "`") + 1;
-$length = strpos($sane_result, "'") - $start;
-$scanner = "\"".substr($sane_result, $start, $length)."\"";
-unset($start);
+$length = strpos($sane_result, "::");
+$scanner = "\"".substr($sane_result, $length)."\"";
 unset($length);
 if ((strlen($scanner) > 2) || $do_test_mode) {
 	$scanner_ok = true;
 }
-$start = strpos($sane_result, "is a ") + 5;
+$start = strpos($sane_result, "::") + 2;
 $length = strlen($sane_result) - $start;
 $scanner_name = str_replace("_", " ", substr($sane_result, $start, $length));
 $scan_output = $scanner_name;

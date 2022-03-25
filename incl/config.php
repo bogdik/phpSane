@@ -97,7 +97,6 @@ $do_file_download		= true;	//download selected files
 $do_file_timezone		= false;
 $do_file_highlight_new	= true;
 
-
 $do_format_pnm			= true;
 $do_format_jpg			= true;
 $do_format_tif			= true;
@@ -156,6 +155,7 @@ $action_clean_output=0;
 $action_deletefiles=0;
 $action_preview=0;
 $action_save=0;
+$action_detect=0;
 $first=1;
 
 
@@ -172,7 +172,7 @@ if ($first) {
 
 if(isset($_POST['lang_id'])) $lang_id=$_POST['lang_id'];
 if(isset($_POST['append_file'])) $append_file=$_POST['append_file'];
-
+if(isset($_POST['detect']) or isset($_GET['detect'])) $action_detect=1;
 
 // check what button is clicked
 if(isset($_POST['action_deletefiles'])) $action_deletefiles=1;
@@ -259,10 +259,14 @@ $scanner_ok = false;
 if ($do_test_mode) {
 	$sane_result = "device `plustek:libusb:004:002' is a Plustek OpticPro U24 flatbed scanner";
 } else {
-   $sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --formatted-device-list=%d::%m %i --list-devices";
-   $sane_result = exec($sane_cmd);
-   file_put_contents("./scanners.cache", $sane_result);
-   unset($sane_cmd);
+	if ($action_detect == 0 && file_exists("./scanners.cache")) {
+		$sane_result = file_get_contents("./scanners.cache");
+	} else {
+		$sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --formatted-device-list=%d::%m %i --list-devices";
+		$sane_result = exec($sane_cmd);
+		file_put_contents("./scanners.cache", $sane_result);
+		unset($sane_cmd);
+	}
 }
 
 // get scanner name
@@ -469,7 +473,7 @@ if($scanner_ok) {
 		$contrast = $contrast_default; //set to scanimage default when not set or out of range
 	}
 	unset($contrast_supported);
-	
+
 	$do_source = $do_source && $source_supported;
 	unset($source_supported);
 }

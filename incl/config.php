@@ -96,6 +96,7 @@ $do_file_delete			= true;	//delete selected files
 $do_file_download		= true;	//download selected files
 $do_file_timezone		= false;
 $do_file_highlight_new	= true;
+$do_rotation			= true;
 
 $do_format_pnm			= true;
 $do_format_jpg			= true;
@@ -172,6 +173,8 @@ if ($first) {
 
 if(isset($_POST['lang_id'])) $lang_id=$_POST['lang_id'];
 if(isset($_POST['append_file'])) $append_file=$_POST['append_file'];
+$rotation = 0;
+if(isset($_POST['rotation'])) $rotation=$_POST['rotation'];
 if(isset($_POST['detect']) or isset($_GET['detect'])) $action_detect=1;
 
 // check what button is clicked
@@ -474,6 +477,8 @@ if($scanner_ok) {
 	}
 	unset($contrast_supported);
 
+	if($rotation < 0 || $rotation > 360) { $rotation = 0; }
+	
 	$do_source = $do_source && $source_supported;
 	unset($source_supported);
 }

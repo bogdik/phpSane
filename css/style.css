@@ -197,6 +197,22 @@ a:focus {
   margin-left: 7px;
 }
 
+#tab_menu_settings #rotation_slider {
+  width: 155px;
+  display: inline-block;
+  vertical-align:middle;
+  margin-top: auto;
+  background-color:    #e5e5e7;
+}
+#tab_menu_settings #rotation {
+  width: 44px;
+  margin-left: 7px;
+}
+#tab_menu_settings #rotationauto {
+  width: 44px;
+  margin-left: 7px;
+}
+
 #tab_menu_settings select {
   width: 210px;
 }

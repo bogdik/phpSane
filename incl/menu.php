@@ -54,7 +54,7 @@ echo "
 	<tr>
 		<td>".$lang[$lang_id][10]."</td>
 		<td class='value_column'>
-			<select id='format' name='format'>\n";
+			<select id='format' name='format' onchange='document.getElementById(\"tab_menu_buttons_acceptnext\").style.display = (document.getElementById(\"format\").value == \"pdf\" || document.getElementById(\"format\").value == \"txt\") ? \"inline-block\" : \"none\";'>\n";
 if($do_format_jpg) { echo "				<option "; if($format=="jpg") echo "selected "; echo "value='jpg' data-image='images/filetype_jpg.png'>".$lang[$lang_id][44]."</option>\n"; }
 if($do_format_pnm) { echo "				<option "; if($format=="pnm") echo "selected "; echo "value='pnm' data-image='images/filetype_pnm.png'>".$lang[$lang_id][45]."</option>\n"; }
 if($do_format_tif) { echo "				<option "; if($format=="tif") echo "selected "; echo "value='tif' data-image='images/filetype_tif.png'>".$lang[$lang_id][46]."</option>\n"; }
@@ -187,10 +187,6 @@ if($do_btn_reset || $do_btn_clean) {
 }
 
 echo "
-	<tr>
-		<td id='tab_menu_buttons' colspan='2'>
-			<input id='tab_menu_buttons_preview' type='submit' name='action_preview' value='".$lang[$lang_id][24]."'><input id='tab_menu_buttons_accept' type='submit' name='action_save' value='".$lang[$lang_id][42]."'>
-		</td>
-		<td class='unit_column'></td>
-		</tr>
-</table>\n";
+	</table></td></tr>\n
+	<td id='tab_menu_buttons' colspan='3'>
+	<input id='tab_menu_buttons_preview' type='submit' name='action_preview' value='".$lang[$lang_id][24]."' onclick='document.getElementById(\"tab_menu_buttons_preview\").style.backgroundColor=\"Gray\"; document.getElementById(\"tab_menu_buttons_accept\").style.backgroundColor=\"Gray\"; document.getElementById(\"tab_menu_buttons_acceptnext\").style.backgroundColor=\"Gray\";'><input id='tab_menu_buttons_accept' type='submit' name='action_save' value='".$lang[$lang_id][42]."' onclick='document.getElementById(\"append_file\").value=\"\"; document.getElementById(\"tab_menu_buttons_preview\").style.backgroundColor=\"Gray\"; document.getElementById(\"tab_menu_buttons_accept\").style.backgroundColor=\"Gray\";'><input id='tab_menu_buttons_acceptnext' type='submit' name='action_save' value='".$lang[$lang_id][65]."' onclick='document.getElementById(\"tab_menu_buttons_preview\").style.backgroundColor=\"Gray\"; document.getElementById(\"tab_menu_buttons_accept\").style.backgroundColor=\"Gray\"; document.getElementById(\"tab_menu_buttons_acceptnext\").style.backgroundColor=\"Gray\";'>";

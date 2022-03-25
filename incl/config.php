@@ -305,7 +305,7 @@ if($scanner_ok) {
 	} else {
 		// build configuration from scanimage output
 		// scanimage call and gather output
-		$sane_cmd = $SCANIMAGE . " -h -d$scanner";
+		$sane_cmd = $SCANIMAGE . " -h --device-name=" . $scanner
 		$sane_result = `$sane_cmd`;
 		if ($do_test_mode) {
 			$sane_result = "	 --resolution 50..2450dpi [75]\n	 --mode Lineart|Color|Gray [Color]\n	 --contrast 0..100 [50]\n	 --brightness -100..100 [0]\n	 --source Flatbed|ADF [Flatbed]";
@@ -324,7 +324,7 @@ if($scanner_ok) {
 			$brightness_line = end($sane_result_brightness);
 			if(strpos($brightness_line, 'inactive') === false) {
 				$brightness_supported = true;
-				$brightness_minmax = explode('..', preg_replace('/^.*--brightness ([-|0-9..]*)[ \t].*$/iU','$1', $brightness_line));
+				$brightness_minmax = explode('..', preg_replace('/^.*--brightness ([-|0-9..]*)%.*$/iU','$1', $brightness_line));
 				$brightness_minimum = $brightness_minmax[0];
 				$brightness_maximum = $brightness_minmax[1];
 				unset($brightness_minmax);
@@ -347,7 +347,7 @@ if($scanner_ok) {
 			$contrast_line = end($sane_result_contrast);
 			if(strpos($contrast_line, 'inactive') === false) {
 				$contrast_supported = true;
-				$contrast_minmax = explode('..', preg_replace('/^.*--contrast ([-|0-9..]*)[ \t].*$/iU','$1', $contrast_line));
+				$contrast_minmax = explode('..', preg_replace('/^.*--contrast ([-|0-9..]*)%.*$/iU','$1', $contrast_line));
 				$contrast_minimum = $contrast_minmax[0];
 				$contrast_maximum = $contrast_minmax[1];
 				unset($contrast_minmax);

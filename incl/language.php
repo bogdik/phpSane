@@ -71,6 +71,10 @@ $lang[0] = array(
 	"Delete",				// 59
 	"scan_",				// 60
 	"Quelle",				// 61
+    "Flatbed",                              // 62
+    "Dokumenteneinzug",                             // 63
+    "Rotation",                             // 64
+    "Nächste Seite",                // 65
 );
 
 
@@ -142,6 +146,8 @@ $lang[1] = array(
 	"Source",				// 61
 	"Flatbad",				// 62
 	"ADF",				// 63
+    "Rotation",                             // 64
+    "Next Page",            // 65
 );
 
 
@@ -522,6 +528,8 @@ $lang[6] = array(
 	"Source",			// 61
 	"Flatbad",				// 62
 	"ADF",				// 63
+    "Rotation",                             // 64
+    "Prochaine page",               // 65
 );
 
 
@@ -732,5 +740,7 @@ $lang[9] = array(
 	"Sorgente",            // 61
 	"Piano",				// 62
 	"Vassoio automatico",	// 63
+    "Rotazione",                            // 64
+    "Prossima pagina",              // 65
 );
 ?>

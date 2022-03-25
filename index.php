@@ -514,7 +514,9 @@ if ($do_source){
 				<input type=hidden name='resolution' value='".$resolution."'>
 				<input type=hidden name='brightness' value='".$brightness."'>
 				<input type=hidden name='contrast' value='".$contrast."'>
+				<input type=hidden name='rotation' value='".$rotation."'>
 				<input type=hidden name='source' value='".$source."'>
+
 	<table>
 		<tr>
 			<td id='tab_menu_error_text'>".$lang[$lang_id][33]."</td>

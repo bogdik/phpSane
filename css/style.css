@@ -243,10 +243,11 @@ a:focus {
   vertical-align: bottom !important;
   padding: 0.0em !important;
   margin: 0.0em;
+  text-align: center;
 }
 #tab_menu_buttons input {
   padding: 0.6em 0em;
-  width: 49.5%;
+  display: inline-block;
   text-align: left;
   border: solid 1px #dcdcdc;
   background-position: 10px center;
@@ -267,6 +268,10 @@ a:focus {
   background-image: url(../images/btn_preview.png);
 }
 #tab_menu_buttons_accept {
+  padding-left: 47px !important;
+  background-image: url(../images/btn_accept.png);
+}
+#tab_menu_buttons_acceptnext {
   padding-left: 47px !important;
   background-image: url(../images/btn_accept.png);
 }

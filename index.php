@@ -425,11 +425,7 @@ if ($do_source){
 <?php
 //extend scanned document with another page only if multiple source is not activated or source is "Flatbed" (default value)
 	if ($action_save && (($format == "pdf" && $do_append_pdf) || ($format == "txt" && $do_append_txt )) && (!($do_source) || $source == $source_default ) ) {
-		echo "
-		if(confirm(\"{$lang[$lang_id][50]}\")) {
-			$('#append_file').val('{$file_save}');
-			$('#tab_menu_buttons_accept').click();
-		}";
+		echo "$('#append_file').val('{$file_save}');";
 	}
  ?>
 

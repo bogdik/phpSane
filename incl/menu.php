@@ -7,7 +7,7 @@ echo "<table id='tab_menu_settings'>
 		<th colspan='3'>".$lang[$lang_id][21]."</th>
 	</tr>
 	<tr>
-		<td id='scanner_name' colspan='3'>".$scan_output."</td>
+		<td id='scanner_name' colspan='3'>".$scaner_select."</td>
 	</tr>
 	<tr>
 		<th colspan='3'>".$lang[$lang_id][0]."</th>

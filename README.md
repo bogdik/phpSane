@@ -7,6 +7,7 @@ It's forked from [SourceForge phpSane](https://sourceforge.net/projects/phpsane/
 ## Installing phpSANE on FreeBSD
 
 ### Prerequisites
+`apt install netpbm`
 `pkg_add -r sane-backends`  
 `pkg_add -r sane-frontends`  
 `pkg_add -r git*`

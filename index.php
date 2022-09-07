@@ -13,12 +13,16 @@ include("incl/language.php");
 include("incl/config.php");
 include("incl/security.php");
 include("incl/scan.php");
-
+if(isset($_GET['scanner'])&&$_GET['scanner']){
+	file_put_contents("./scanner.select", $_GET['scanner']);
+	echo json_encode(['result'=>'ok']);
+	exit();
+}
 //set localized formatting
 setlocale(LC_ALL, $lang[$lang_id][19]);
 header('Content-Type: text/html; charset=utf-8');
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 	<meta name="author" content="root">
@@ -157,7 +161,7 @@ if ($do_source){
 						}
 					}
 				} catch(e) {
-					alert(e.message);
+					console.log(e.message);
 				}
 			}else{
 				$('#format').empty();
@@ -195,7 +199,7 @@ if ($do_source){
 						}
 					}
 				} catch(e) {
-					alert(e.message);
+					console.log(e.message);
 				}
 			}
 		});
@@ -219,7 +223,7 @@ if ($do_source){
 			$("body select").msDropDown({reverseMode:true});
 			$("#source").trigger('change');
 		} catch(e) {
-			alert(e.message);
+			console.log(e.message);
 		}
 
 		//prevent form submit when pressing enter key in text field

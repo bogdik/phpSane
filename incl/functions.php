@@ -51,7 +51,7 @@ function scanner_known($scanner_name) {
 function get_config_option_array($scanner_name, $config_key, $index = 0) {
 	$config_options = explode('|', get_config_option($scanner_name, $config_key));
 	$config_option_string = $config_options[$index];
-	return explode(';', $config_option_string);
+	return array_diff(explode(';', $config_option_string), array(''));
 }
 
 function get_config_option($scanner_name, $config_key) {
@@ -70,6 +70,7 @@ function get_config_option($scanner_name, $config_key) {
 }
 
 function get_scanner_resolution_options($scanner_name) {
+	$arr=get_config_option_array($scanner_name, "resolution");
 	return get_config_option_array($scanner_name, "resolution");
 }
 function get_scanner_resolution_default($scanner_name) {

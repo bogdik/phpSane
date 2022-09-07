@@ -94,12 +94,14 @@ if ($do_contrast) {
 
 $cmd_source="";
 if ($do_source) {
-	$cmd_source=" --source ".$source;
-	if (($source == 'ADF') && ($action_save)) {
-		if ($format == "txt") {
-			$cmd_source=$cmd_source." --batch='{$temp_dir}out_".$scan_id."_%d.pnm' --batch-start=10";
-		}else{
-			$cmd_source=$cmd_source." --format=tiff --batch='{$temp_dir}out_".$scan_id."_%d.tif' --batch-start=10";
+	if($source!==-1){
+		$cmd_source=" --source ".$source;
+		if (($source == 'ADF') && ($action_save)) {
+			if ($format == "txt") {
+				$cmd_source=$cmd_source." --batch='{$temp_dir}out_".$scan_id."_%d.pnm' --batch-start=10";
+			}else{
+				$cmd_source=$cmd_source." --format=tiff --batch='{$temp_dir}out_".$scan_id."_%d.tif' --batch-start=10";
+			}
 		}
 	}
 }
@@ -113,14 +115,14 @@ $scan_yes='';
 $cmd_device = '';
 $file_save = '';
 $file_save_image = 0;
-$cmd_scan=$SCANIMAGE." -d ".$scanner.$cmd_geometry_l.$cmd_geometry_t.$cmd_geometry_x.$cmd_geometry_y.$cmd_mode.$cmd_resolution.$cmd_brightness.$cmd_contrast.$cmd_source.$cmd_usr_opt;
+$cmd_scan=$SCANIMAGE." -d ".trim($scanner).$cmd_geometry_l.$cmd_geometry_t.$cmd_geometry_x.$cmd_geometry_y.$cmd_mode.$cmd_resolution.$cmd_brightness.$cmd_contrast.$cmd_source.$cmd_usr_opt;
 $has_convert = 0;
-
+//echo var_dump($cmd_scan);
 if ($error_input == 0){
 	if ($action_preview) {
 		$preview_images = $temp_dir."preview_".$sid.".jpg";
 		$cmd_device = $SCANIMAGE." -d ".$scanner." --resolution ".$PREVIEW_DPI."dpi -l 0mm -t 0mm -x ".$MAX_SCAN_WIDTH_MM."mm -y ".$MAX_SCAN_HEIGHT_MM."mm".$cmd_mode.$cmd_brightness.$cmd_contrast.$cmd_source.$cmd_usr_opt." | ".$PNMTOJPEG." --quality=50 > ".$preview_images;
- 	    if (strlen($cmd_rotation) > 0) {
+ 	    if (isset($cmd_rotation)&&strlen($cmd_rotation) > 0) {
 			$cmd_device = $cmd_device." && {$CONVERT} '$preview_images' " . $cmd_rotation . " '$preview_images'";
 		}
 

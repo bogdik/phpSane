@@ -18,6 +18,7 @@ if (!is_dir($save_dir)){
 if (!is_dir($scanner_dir)){
 	mkdir($scanner_dir);
 }
+
 // set up a string to be prepended to the scanimage command, so that
 // scanimage looks for devices at the ip making the request
 // $SCAN_NET_SETUP = 'export SANE_NET_HOSTS='.$_SERVER['REMOTE_ADDR'].' && ';
@@ -265,7 +266,7 @@ if ($do_test_mode) {
 	if ($action_detect == 0 && file_exists("./scanners.cache")) {
 		$sane_result = file_get_contents("./scanners.cache");
 	} else {
-		$sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --formatted-device-list=%d::%m %i --list-devices";
+		$sane_cmd = $SCAN_NET_SETUP . $SCANIMAGE . " --formatted-device-list=\"%d::%m %i^\" --list-devices";
 		$sane_result = exec($sane_cmd);
 		file_put_contents("./scanners.cache", $sane_result);
 		unset($sane_cmd);
@@ -273,213 +274,246 @@ if ($do_test_mode) {
 }
 
 // get scanner name
-$length = strpos($sane_result, "::");
-$scanner = "\"".substr($sane_result, $length)."\"";
-unset($length);
-if ((strlen($scanner) > 2) || $do_test_mode) {
-	$scanner_ok = true;
+//var_dump($sane_result); exit();
+$selected='';
+$noneed=false;
+if(file_exists("./scanner.select")){
+	$selected = file_get_contents("./scanner.select");
 }
-$start = strpos($sane_result, "::") + 2;
-$length = strlen($sane_result) - $start;
-$scanner_name = str_replace("_", " ", substr($sane_result, $start, $length));
-$scan_output = $scanner_name;
-unset($start);
-unset($length);
-unset($sane_result);
-
-if($scanner_ok) {
-	$scanner_known = scanner_known($scanner_name);
-	// allowed resolutions
-	if($scanner_known) {
-		// read scanner configuration from file
-		$mode_list = get_scanner_mode_options($scanner_name);
-		$mode_default = get_scanner_mode_default($scanner_name);
-		$resolution_list = get_scanner_resolution_options($scanner_name);
-		$resolution_max = (int)end($resolution_list);
-		$resolution_min = (int)reset($resolution_list);
-		$resolution_default = get_scanner_resolution_default($scanner_name);
-		$brightness_supported = strtolower(get_scanner_brightness_supported($scanner_name)) === 'true';
-		$brightness_default = (int)get_scanner_brightness_default($scanner_name);
-		$brightness_minimum = (int)get_scanner_brightness_minimum($scanner_name);
-		$brightness_maximum = (int)get_scanner_brightness_maximum($scanner_name);
-		$contrast_supported = strtolower(get_scanner_contrast_supported($scanner_name)) === 'true';
-		$contrast_default = (int)get_scanner_contrast_default($scanner_name);
-		$contrast_minimum = (int)get_scanner_contrast_minimum($scanner_name);
-		$contrast_maximum = (int)get_scanner_contrast_maximum($scanner_name);
-		$source_supported = strtolower(get_scanner_source_supported($scanner_name)) === 'true';
-		$source_list = get_scanner_source_options($scanner_name);
-		$source_default = get_scanner_source_default($scanner_name);
-	} else {
-		// build configuration from scanimage output
-		// scanimage call and gather output
-		$sane_cmd = $SCANIMAGE . " -h --device-name=" . $scanner
-		$sane_result = `$sane_cmd`;
-		if ($do_test_mode) {
-			$sane_result = "	 --resolution 50..2450dpi [75]\n	 --mode Lineart|Color|Gray [Color]\n	 --contrast 0..100 [50]\n	 --brightness -100..100 [0]\n	 --source Flatbed|ADF [Flatbed]";
+//echo $selected; exit();
+$scaners=explode('^',$sane_result);
+$scaner_select="<select id='scanner' onchange='$.get( \"/index.php?scanner=\"+$(this).val(), function( data ) {document.location.reload();})'>";
+foreach ($scaners as $scn){
+	if($scn){
+		$length = strpos($scn, "::");
+		$scanner = "\"".substr($scn, $length)."\"";
+		unset($length);
+		if ((strlen($scanner) > 2) || $do_test_mode) {
+			$scanner_ok = true;
+			$scanner=explode('::',$scn)[0];
 		}
-		$sane_result_arr = explode("\n", $sane_result);
-		unset($sane_result);
-		unset($sane_cmd);
-		////////
-		// brightness
-		$brightness_supported = false;
-		$brightness_minimum = 0;
-		$brightness_maximum = 0;
-		$brightness_default = 0;
-		$sane_result_brightness = preg_grep('/--brightness /', $sane_result_arr);
-		if(count($sane_result_brightness) > 0) {
-			$brightness_line = end($sane_result_brightness);
-			if(strpos($brightness_line, 'inactive') === false) {
-				$brightness_supported = true;
-				$brightness_minmax = explode('..', preg_replace('/^.*--brightness ([-|0-9..]*)%.*$/iU','$1', $brightness_line));
-				$brightness_minimum = $brightness_minmax[0];
-				$brightness_maximum = $brightness_minmax[1];
-				unset($brightness_minmax);
-
-				preg_match("/\[(.*?)\]/", $brightness_line, $brightness_default_array);
-				$brightness_default = $brightness_default_array[1];
-				unset($brightness_default_array);
-			}
-			unset($brightness_line);
+		
+		$start = strpos($scn, "::") + 2;
+		$length = strlen($scn) - $start;
+		$scanner_name = str_replace("_", " ", substr($scn, $start, $length));
+		$scan_output = $scanner_name;
+		if($scanner==$selected|| (!$selected&&end($scaners)==$scn)){
+			$scaner_select.='<option selected value="'.$scanner.'">'.$scanner_name.'</option>';
+			
+		} else {
+			$scaner_select.='<option value="'.$scanner.'">'.$scanner_name.'</option>';	
 		}
-		unset($sane_result_brightness);
-		////////
-		// contrast
-		$contrast_supported = false;
-		$contrast_minimum = 0;
-		$contrast_maximum = 0;
-		$contrast_default = 0;
-		$sane_result_contrast = preg_grep('/--contrast /', $sane_result_arr);
-		if(count($sane_result_contrast) > 0) {
-			$contrast_line = end($sane_result_contrast);
-			if(strpos($contrast_line, 'inactive') === false) {
-				$contrast_supported = true;
-				$contrast_minmax = explode('..', preg_replace('/^.*--contrast ([-|0-9..]*)%.*$/iU','$1', $contrast_line));
-				$contrast_minimum = $contrast_minmax[0];
-				$contrast_maximum = $contrast_minmax[1];
-				unset($contrast_minmax);
-
-				preg_match("/\[(.*?)\]/", $contrast_line, $contrast_default_array);
-				$contrast_default = $contrast_default_array[1];
-				unset($contrast_default_array);
-			}
-			unset($contrast_line);
-		}
-		unset($sane_result_contrast);
-		////////
-		// modes
-		$sane_result_mode = preg_grep('/--mode /', $sane_result_arr);
-		$sane_result_mode = end($sane_result_mode);
-		$modes = preg_replace('/^.*--mode ([a-z|]*)[ \t].*$/iU','$1', $sane_result_mode);
-		$mode_list = explode('|', $modes);
-
-		preg_match("/\[(.*?)\]/", $sane_result_mode, $mode_default_array);
-		$mode_default = $mode_default_array[1];
-		unset($sane_result_mode);
-		unset($mode_default_array);
-		////////
-		// resolutions
-		$sane_result_reso = preg_grep('/--resolution /', $sane_result_arr);
-		$sane_result_reso = end($sane_result_reso);
-		// get default resolution
-		preg_match("/\[(.*?)\]/", $sane_result_reso, $resolution_default_array);
-		$resolution_default = $resolution_default_array[1];
-		$start = strpos($sane_result_reso, "n") + 2;
-		$length = strpos($sane_result_reso, "dpi") - $start;
-		$list = "" . substr($sane_result_reso, $start,$length) . "";
-		////////
-		// source
-		$sane_result_source = preg_grep('/--source /', $sane_result_arr);
-		$sane_result_source = end($sane_result_source);
-		$sources = preg_replace('/^.*--source ([a-z|]*)[ \t].*$/iU','$1', $sane_result_source);
-		if(strpos($sane_result_source, 'inactive') === false) {
-			$source_supported = true;
-			$source_list = explode('|', $sources);
-
-			preg_match("/\[(.*?)\]/", $sane_result_source, $source_default_array);
-			$source_default = $source_default_array[1];
-		}
-		unset($sane_result_source);
-		unset($source_default_array);
-		////////
 		unset($start);
 		unset($length);
-		unset($sane_result_reso);
-		unset($sane_result_arr);
-
-		// change "|" separated string $list into array of values or generate a range of values.
-		$length = strpos($list, "..");
-		if ($length === false) {
-			$resolution_list = explode("|" , $list);
-			$resolution_max = (int)end($resolution_list);
-			$resolution_min = (int)reset($resolution_list);
-		} else {
-			$resolution_list = array();
-			$resolution_min = (int)substr($list, 0, $length);
-			$resolution_max = (int)substr($list, $length + 2);
-
-			// lower resolutions
-			$list = array(
-				10, 20, 30, 40, 50, 60, 72, 75, 80, 90,
-				100, 120, 133, 144, 150, 160, 175, 180,
-				200, 216, 240, 266,
-				300, 320, 350, 360,
-				400, 480,
-				600,
-				720,
-				800,
-				900,
-			);
-
-			foreach ($list as $res) {
-				if (($res >= $resolution_min) && ($res <= $resolution_max)) {
-					$resolution_list[] = $res;
+		unset($sane_result);
+	}
+	if($scanner_ok&&$scanner_name) {
+		if(!$noneed){
+			if($scanner==$selected){
+				$noneed=true;
+				$scan_selected_output=$scan_output;
+				$scan_selected_scanner=$scanner;
+			}
+			$scanner_known = scanner_known($scanner_name);
+			// allowed resolutions
+			if($scanner_known) {
+				// read scanner configuration from file
+				$mode_list = get_scanner_mode_options($scanner_name);
+				$mode_default = get_scanner_mode_default($scanner_name);
+				$resolution_list = get_scanner_resolution_options($scanner_name);
+				$resolution_max = (int)end($resolution_list);
+				$resolution_min = (int)reset($resolution_list);
+				$resolution_default = get_scanner_resolution_default($scanner_name);
+				$brightness_supported = strtolower(get_scanner_brightness_supported($scanner_name)) === 'true';
+				$brightness_default = (int)get_scanner_brightness_default($scanner_name);
+				$brightness_minimum = (int)get_scanner_brightness_minimum($scanner_name);
+				$brightness_maximum = (int)get_scanner_brightness_maximum($scanner_name);
+				$contrast_supported = strtolower(get_scanner_contrast_supported($scanner_name)) === 'true';
+				$contrast_default = (int)get_scanner_contrast_default($scanner_name);
+				$contrast_minimum = (int)get_scanner_contrast_minimum($scanner_name);
+				$contrast_maximum = (int)get_scanner_contrast_maximum($scanner_name);
+				$source_supported = strtolower(get_scanner_source_supported($scanner_name)) === 'true';
+				$source_list = get_scanner_source_options($scanner_name);
+				$source_default = get_scanner_source_default($scanner_name);
+			} else {
+				// build configuration from scanimage output
+				// scanimage call and gather output
+				$sane_cmd = $SCANIMAGE . " -h --device-name=".$scanner;
+				$sane_result = `$sane_cmd`;
+				if ($do_test_mode) {
+					$sane_result = "	 --resolution 50..2450dpi [75]\n	 --mode Lineart|Color|Gray [Color]\n	 --contrast 0..100 [50]\n	 --brightness -100..100 [0]\n	 --source Flatbed|ADF [Flatbed]";
 				}
+				$sane_result_arr = explode("\n", $sane_result);
+				unset($sane_result);
+				unset($sane_cmd);
+				////////
+				// brightness
+				$brightness_supported = false;
+				$brightness_minimum = 0;
+				$brightness_maximum = 0;
+				$brightness_default = 0;
+				$sane_result_brightness = preg_grep('/--brightness /', $sane_result_arr);
+				if(count($sane_result_brightness) > 0) {
+					$brightness_line = end($sane_result_brightness);
+					if(strpos($brightness_line, 'inactive') === false) {
+						$brightness_supported = true;
+						$brightness_minmax = explode('..', preg_replace('/^.*--brightness ([-|0-9..]*)%.*$/iU','$1', $brightness_line));
+						$brightness_minimum = $brightness_minmax[0];
+						$brightness_maximum = $brightness_minmax[1];
+						unset($brightness_minmax);
+
+						preg_match("/\[(.*?)\]/", $brightness_line, $brightness_default_array);
+						$brightness_default = $brightness_default_array[1];
+						unset($brightness_default_array);
+					}
+					unset($brightness_line);
+				}
+				unset($sane_result_brightness);
+				////////
+				// contrast
+				$contrast_supported = false;
+				$contrast_minimum = 0;
+				$contrast_maximum = 0;
+				$contrast_default = 0;
+				$sane_result_contrast = preg_grep('/--contrast /', $sane_result_arr);
+				if(count($sane_result_contrast) > 0) {
+					$contrast_line = end($sane_result_contrast);
+					if(strpos($contrast_line, 'inactive') === false) {
+						$contrast_supported = true;
+						$contrast_minmax = explode('..', preg_replace('/^.*--contrast ([-|0-9..]*)%.*$/iU','$1', $contrast_line));
+						$contrast_minimum = $contrast_minmax[0];
+						$contrast_maximum = $contrast_minmax[1];
+						unset($contrast_minmax);
+
+						preg_match("/\[(.*?)\]/", $contrast_line, $contrast_default_array);
+						$contrast_default = $contrast_default_array[1];
+						unset($contrast_default_array);
+					}
+					unset($contrast_line);
+				}
+				unset($sane_result_contrast);
+				////////
+				// modes
+				$sane_result_mode = preg_grep('/--mode /', $sane_result_arr);
+				$sane_result_mode = end($sane_result_mode);
+				$modes = preg_replace('/^.*--mode ([a-z|]*)[ \t].*$/iU','$1', $sane_result_mode);
+				$mode_list = explode('|', $modes);
+
+				preg_match("/\[(.*?)\]/", $sane_result_mode, $mode_default_array);
+				$mode_default = $mode_default_array[1];
+				unset($sane_result_mode);
+				unset($mode_default_array);
+				////////
+				// resolutions
+				$sane_result_reso = preg_grep('/--resolution /', $sane_result_arr);
+				$sane_result_reso = end($sane_result_reso);
+				// get default resolution
+				preg_match("/\[(.*?)\]/", $sane_result_reso, $resolution_default_array);
+				$resolution_default = $resolution_default_array[1];
+				$start = strpos($sane_result_reso, "n") + 2;
+				$length = strpos($sane_result_reso, "dpi") - $start;
+				$list = "" . substr($sane_result_reso, $start,$length) . "";
+				////////
+				// source
+				$sane_result_source = preg_grep('/--source /', $sane_result_arr);
+				$sane_result_source = end($sane_result_source);
+				$sources = preg_replace('/^.*--source ([a-z|]*)[ \t].*$/iU','$1', $sane_result_source);
+				if(strpos($sane_result_source, 'inactive') === false) {
+					$source_supported = true;
+					$source_list = explode('|', $sources);
+
+					preg_match("/\[(.*?)\]/", $sane_result_source, $source_default_array);
+					$source_default = $source_default_array[1];
+				}
+				unset($sane_result_source);
+				unset($source_default_array);
+				////////
+				unset($start);
+				unset($length);
+				unset($sane_result_reso);
+				unset($sane_result_arr);
+
+				// change "|" separated string $list into array of values or generate a range of values.
+				$length = strpos($list, "..");
+				if ($length === false) {
+					$resolution_list = explode("|" , $list);
+					$resolution_max = (int)end($resolution_list);
+					$resolution_min = (int)reset($resolution_list);
+				} else {
+					$resolution_list = array();
+					$resolution_min = (int)substr($list, 0, $length);
+					$resolution_max = (int)substr($list, $length + 2);
+
+					// lower resolutions
+					$list = array(
+						10, 20, 30, 40, 50, 60, 72, 75, 80, 90,
+						100, 120, 133, 144, 150, 160, 175, 180,
+						200, 216, 240, 266,
+						300, 320, 350, 360,
+						400, 480,
+						600,
+						720,
+						800,
+						900,
+					);
+
+					foreach ($list as $res) {
+						if (($res >= $resolution_min) && ($res <= $resolution_max)) {
+							$resolution_list[] = $res;
+						}
+					}
+
+					// higher resolutions
+					$res = 1000;
+					while (($res >= $resolution_min) && ($res < $resolution_max)) {
+						$resolution_list[] = $res;
+						$res += 200;
+					}
+
+					$resolution_list[] = $resolution_max;
+				}
+				unset($length);
+				////////
+				// save scanner configuration
+				save_scanner_config($scanner_name,
+								$mode_list, $mode_default,
+								$resolution_list, $resolution_default,
+								$brightness_supported, $brightness_default, $brightness_minimum, $brightness_maximum,
+								$contrast_supported, $contrast_default, $contrast_minimum, $contrast_maximum,
+								$source_supported, $source_list, $source_default);
 			}
 
-			// higher resolutions
-			$res = 1000;
-			while (($res >= $resolution_min) && ($res < $resolution_max)) {
-				$resolution_list[] = $res;
-				$res += 200;
+			if($resolution == -1 || array_search($resolution_default, $resolution_list) === false) {
+				$resolution = $resolution_default;
 			}
 
-			$resolution_list[] = $resolution_max;
+			if($mode == -1 || (array_search(strtolower($mode),array_map('strtolower', $mode_list)) === false)) {
+				$mode = $mode_default;
+			}
+
+			$do_brightness = $do_brightness && $brightness_supported; //disable brightness option when not available
+			if($brightness == -1 || (($brightness < $brightness_minimum) || ($brightness > $brightness_maximum))) {
+				$brightness = $brightness_default; //set to scanimage default when not set or out of range
+			}
+			unset($brightness_supported);
+
+			$do_contrast = $do_contrast && $contrast_supported; //disable contrast option when not available
+			if($contrast == -1 || (($contrast < $contrast_minimum) || ($contrast > $contrast_maximum))) {
+				$contrast = $contrast_default; //set to scanimage default when not set or out of range
+			}
+			unset($contrast_supported);
+
+			if($rotation < 0 || $rotation > 360) { $rotation = 0; }
+			
+			$do_source = $do_source && $source_supported;
+			unset($source_supported);
 		}
-		unset($length);
-		////////
-		// save scanner configuration
-		save_scanner_config($scanner_name,
-						$mode_list, $mode_default,
-						$resolution_list, $resolution_default,
-						$brightness_supported, $brightness_default, $brightness_minimum, $brightness_maximum,
-						$contrast_supported, $contrast_default, $contrast_minimum, $contrast_maximum,
-						$source_supported, $source_list, $source_default);
 	}
-
-	if($resolution == -1 || array_search($resolution_default, $resolution_list) === false) {
-		$resolution = $resolution_default;
-	}
-
-	if($mode == -1 || (array_search(strtolower($mode),array_map('strtolower', $mode_list)) === false)) {
-		$mode = $mode_default;
-	}
-
-	$do_brightness = $do_brightness && $brightness_supported; //disable brightness option when not available
-	if($brightness == -1 || (($brightness < $brightness_minimum) || ($brightness > $brightness_maximum))) {
-		$brightness = $brightness_default; //set to scanimage default when not set or out of range
-	}
-	unset($brightness_supported);
-
-	$do_contrast = $do_contrast && $contrast_supported; //disable contrast option when not available
-	if($contrast == -1 || (($contrast < $contrast_minimum) || ($contrast > $contrast_maximum))) {
-		$contrast = $contrast_default; //set to scanimage default when not set or out of range
-	}
-	unset($contrast_supported);
-
-	if($rotation < 0 || $rotation > 360) { $rotation = 0; }
-	
-	$do_source = $do_source && $source_supported;
-	unset($source_supported);
 }
+$scaner_select.="</select>";
+if($scan_selected_output&&$scan_selected_scanner){
+	$scan_output=$scan_selected_output;
+	$scanner=$scan_selected_scanner;
+}
+
 ?>
